@@ -33,3 +33,8 @@ noise <- function(l=10, type=c("uniform", "triangle", "binary",
 	outp
 }
 
+
+
+
+
+

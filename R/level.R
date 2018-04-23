@@ -1,9 +1,8 @@
 fitrange <- function(W, lower=-1, upper=1) {
-	if (length(W) == 0) {
-		W <- NA
-	}
 	if (lower > upper) warning("upper bound must be strictly larger than lower bound")
-	if (length(W) == 0) return(numeric(0))
+	if (length(W) == 0 | all(is.na(W))) {
+		return(numeric(0))
+	}
 	newrange <- upper - lower
 	oldrange <- max(W, na.rm=TRUE) - min(W, na.rm=TRUE)
 	if (oldrange == 0) {
@@ -15,19 +14,29 @@ fitrange <- function(W, lower=-1, upper=1) {
 }
 
 fit01 <- function(W) {
-	if (length(W) == 0) {
-		W <- NA
+	if (length(W) == 0 | all(is.na(W))) {
+		return(numeric(0))
 	}
 	oldrange <- max(W) - min(W)
-	(W - min(W)) / oldrange
+	if (oldrange == 0) {
+		d <- abs(W) < abs(W - 1)
+		ifelse(d, 0, 1)
+	} else {
+		(W - min(W)) / oldrange
+	}
 }
 
 fit11 <- function(W) {
-	if (length(W) == 0) {
-		W <- NA
+	if (length(W) == 0 | all(is.na(W))) {
+		return(numeric(0))
 	}
 	oldrange <- max(W) - min(W)
-	(W - min(W)) * (2/oldrange) + -1
+	if (oldrange == 0) {
+		d <- abs(W - -1) < abs(W - 1)
+		ifelse(d, -1, 1)
+	} else {
+		(W - min(W)) * (2/oldrange) + -1
+	}
 }
 
 norm11 <- function(x) {
@@ -118,13 +127,11 @@ fade <- function(x, len=441, shape=3, lg=100, len2=len, shape2=shape, lg2=lg) {
 	slope <- dbeta(seq(0, 1, length.out=len*2), shape, shape)
 	slope <- log(slope[1:len] + lg)
 	slope <- fit01(slope)	
-    slope <- slope[!is.na(slope)]
 
     if (asym) {
 		slope2 <- dbeta(seq(0, 1, length.out=len2*2), shape2, shape2)
 		slope2 <- log(slope2[(len2+1):length(slope2)] + lg2)
 		slope2 <- fit01(slope2)
-        slope2 <- slope2[!is.na(slope2)]
     } else {
     	slope2 <- rev(slope)
     }
@@ -142,6 +149,44 @@ fadein <- function(x, len=441, shape=3, lg=100) {
 
 fadeout <- function(x, len=441, shape=3, lg=100) {
 	fade(x=x, len2=len, shape2=shape, lg2=lg, len=1)
+}
+
+tidyends <- function(x, len=441, shape=1.8, lg=0.05, len2=0, shape2=shape, lg2=lg) {
+
+	if (len+len2 > length(x)) {
+		len <- len2 <- floor(length(x)/2)
+		warning("fade length longer than input vector")
+	}
+
+    l1 <- abs(x[1])
+    s1 <- sign(x[1])
+	slope <- dbeta(seq(0, 1, length.out=len*2), shape, shape)
+	slope <- log(slope[1:len] + lg)
+	slope <- fitrange(slope, 0, l1) - l1
+	slope <- slope * s1	
+    slope <- slope[!is.na(slope)]
+
+    l2 <- abs(x[length(x)])
+    s2 <- sign(x[length(x)])
+	slope2 <- dbeta(seq(0, 1, length.out=len2*2), shape2, shape2)
+	slope2 <- log(slope2[(len2+1):(len2*2)] + lg2)
+	slope2 <- fitrange(slope2, 0, l2) - l2
+	slope2 <- slope2 * s2
+    slope2 <- slope2[!is.na(slope2)]
+    
+    lz <- length(x) - length(slope) - length(slope2)
+    zeroes <- rep(0, lz)
+    svec <- c(slope, zeroes, slope2)
+    
+    x + svec
+}
+
+tidyin <- function(x, len=441, shape=1.8, lg=0.05) {
+	tidyends(x=x, len=len, shape=shape, len2=0)
+}
+
+tidyout <- function(x, len=441, shape=1.8, lg=0.05) {
+	tidyends(x=x, len2=len, shape2=shape, lg2=lg, len=0)
 }
 
 dcrem <- function(x, extra=TRUE, span=1) {
