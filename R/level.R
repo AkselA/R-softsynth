@@ -151,7 +151,7 @@ fadeout <- function(x, len=441, shape=3, lg=100) {
 	fade(x=x, len2=len, shape2=shape, lg2=lg, len=1)
 }
 
-tidyends <- function(x, len=441, shape=1.8, lg=0.05, len2=0, shape2=shape, lg2=lg) {
+tidyends <- function(x, len=441, shape=1.8, lg=0.05, len2=len, shape2=shape, lg2=lg) {
 
 	if (len+len2 > length(x)) {
 		len <- len2 <- floor(length(x)/2)
@@ -189,6 +189,64 @@ tidyout <- function(x, len=441, shape=1.8, lg=0.05) {
 	tidyends(x=x, len2=len, shape2=shape, lg2=lg, len=0)
 }
 
+
+loopfix <- function(x, len=441, shape=1.8, lg=100, len2=len, shape2=shape, lg2=lg, vk=0.5) {
+
+    lx <- length(x)
+    xA <- x[1]
+    xZ <- x[lx]
+    
+	if (len+len2 > length(x)) {
+		len <- len2 <- floor(length(x)/2)
+		warning("fade length longer than input vector")
+	}
+	
+	step0 <- fadein(x-xA, shape=1.8, len=len/1.5, lg=10)+xA
+	step0 <- fadeout(step0-xZ, shape=1.8, len=len/1.5, lg=10)+xZ
+	
+	x <- step0
+
+    l1 <- xA - (xA*vk + xZ*(1-vk))
+    s1 <- sign(l1)
+    l1 <- abs(l1)
+
+	slope <- dbeta(seq(0, 1, length.out=len*2), shape, shape)
+	slope <- log(slope[1:len] + lg)
+	slope <- fitrange(slope, 0, l1) - l1
+    slope <- slope * s1
+    slope <- slope[!is.na(slope)]
+
+    
+    l2 <- xZ - (xA*(1-vk) + xZ*vk)
+    s2 <- sign(l2)
+    l2 <- abs(l2)
+
+	slope2 <- dbeta(seq(0, 1, length.out=len2*2), shape2, shape2)
+	slope2 <- log(slope2[(len2+1):(len2*2)] + lg2)
+	slope2 <- fitrange(slope2, 0, l2) - l2
+	slope2 <- slope2 * s2
+    slope2 <- slope2[!is.na(slope2)]
+    
+    lz <- lx - length(slope) - length(slope2)
+    zeroes <- rep(0, lz)
+    svec <- c(slope, zeroes, slope2)
+    
+    step1 <- x + svec
+    
+    flip <- step1[lx:1]
+    flipw <- fade(rep(-0.5, lx), len=len/2, shape=3, lg=100) + 0.5
+    flipw <- flipw*0.8
+    
+    step2 <- step1*(1-flipw) + flip*flipw
+    
+    step2
+
+
+}
+
+
+
+
 dcrem <- function(x, extra=TRUE, span=1) {
 	if (extra) {
 	    mod <- loess(x ~ seq_along(x), span=span)
@@ -204,3 +262,4 @@ dcrem <- function(x, extra=TRUE, span=1) {
     
     ifft(ft)/length(ft)
 }
+

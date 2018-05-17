@@ -81,3 +81,6 @@ sloop <- function(start, stop, l, p=2) {
         fitrange(x^p, stop, start)
 	}
 }
+
+# flip and blend beginning and end to smooth out loop playback
+# loopfix

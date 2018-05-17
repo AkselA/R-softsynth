@@ -1,4 +1,4 @@
-chebylp.s <- function(x, f=880*2, r=15, fs=44100, gain=2, dirty=FALSE) {
+chebylp <- function(x, f=880*2, r=15, fs=44100, gain=2, dirty=FALSE) {
 	corr <- -0.0025 + 1.152708 + 3.448012e-04*sqrt(f) +
             -6.281090e-06*f + -1.602532e-10*f^2
     fcorr <- corr*f
@@ -15,13 +15,13 @@ chebylp.s <- function(x, f=880*2, r=15, fs=44100, gain=2, dirty=FALSE) {
         t1[abs(t1) > 0.6] <- t1[abs(t1) > 0.6]*0.98
         t1[abs(t1) > 0.8] <- t1[abs(t1) > 0.8]*0.97
     } else {
-        t3 <- comp(t3, 0.6, 0.9)
-        t3 <- comp(t3, 0.7, 0.9)
+        t1 <- comp.v(t1, 0.6, 0.9)
+        t1 <- comp.v(t1, 0.7, 0.9)
     }
     t1 <- t1 + x*gain*0.2
-    t3 <- comp(t3, 0.9, 0.9)
-    t3 <- comp(t3, 1.5, 0.6)
-    t3 <- comp(t3, 2.0, 0.5)
+    t1 <- comp.v(t1, 0.9, 0.9)
+    t1 <- comp.v(t1, 1.5, 0.6)
+    t1 <- comp.v(t1, 2.0, 0.5)
 # plot(t1, type="l"); abline(h=0, col="red")
 # summary(t1)
     t2 <- signal::filter(ch1, t1)
@@ -32,8 +32,8 @@ chebylp.s <- function(x, f=880*2, r=15, fs=44100, gain=2, dirty=FALSE) {
         t2[abs(t2) > 0.8] <- t2[abs(t2) > 0.8]*min(c((0.99 + (0.01/gain)), 1))
         t2[abs(t2) > 0.9] <- t2[abs(t2) > 0.9]*min(c((0.98 + (0.02/gain)), 1))
     } else {
-        t3 <- comp(t3, 0.7, 0.9)
-        t3 <- comp(t3, 0.8, 0.9)
+        t2 <- comp.v(t2, 0.7, 0.9)
+        t2 <- comp.v(t2, 0.8, 0.9)
     }
     t2 <- t2 + t1*gain*0.1
 # plot(t2, type="l"); abline(h=0, col="red")
@@ -46,22 +46,22 @@ chebylp.s <- function(x, f=880*2, r=15, fs=44100, gain=2, dirty=FALSE) {
         t3[abs(t3) > 0.7] <- t3[abs(t3) > 0.7]*0.9
         t3[abs(t3) > 0.8] <- t3[abs(t3) > 0.8]*0.9
     } else {
-        t3 <- comp(t3, 0.7, 0.9)
-        t3 <- comp(t3, 0.8, 0.9)
+        t3 <- comp.v(t3, 0.7, 0.9)
+        t3 <- comp.v(t3, 0.8, 0.9)
     }
-    t3 <- comp(t3, 0.9, 0.8)
-    t3 <- comp(t3, 1.0, 0.6)
+    t3 <- comp.v(t3, 0.9, 0.8)
+    t3 <- comp.v(t3, 1.0, 0.6)
 # plot(t3, type="l"); abline(h=0, col="red")
 # summary(t3)
     t4 <- signal::filter(ch3, t3)
-    t4 <- t4 + c(t1[c(-1, -2)], 0, 0)*0.1
+    t4 <- t4 + c(t2[c(-1, -2)], 0, 0)*0.05
 # plot(t4, type="l"); abline(h=0, col="red")
 # summary(t4)
     t4
 }
 
 
-chebyhp.s <- function(x, f=220*2, r=15, fs=44100, gain=2, dirty=TRUE) {
+chebyhp <- function(x, f=220*2, r=15, fs=44100, gain=2, dirty=TRUE) {
     corr <- 0.8728129 + -2.074105e-03*log(f) + 
             4.175484e-06*f + 1.365524e-10*f^2 
     fcorr <- corr*f
@@ -90,16 +90,16 @@ chebyhp.s <- function(x, f=220*2, r=15, fs=44100, gain=2, dirty=TRUE) {
         t1[abs(t1) > 0.99] <- t1[abs(t1) > 0.99]*0.95
         t1[abs(t1) > 1.00] <- t1[abs(t1) > 1.00]*0.95
         t1[abs(t1) > 1.10] <- t1[abs(t1) > 1.10]*0.95
-    	t1 <- comp(t1, 1.5, 0.5)
-    	t1 <- comp(t1, 1.6, 0.4)
+    	t1 <- comp.v(t1, 1.5, 0.5)
+    	t1 <- comp.v(t1, 1.6, 0.4)
     } else {
-    	t1 <- comp(t1, 0.5, 0.9)
-    	t1 <- comp(t1, 0.6, 0.9)
-    	t1 <- comp(t1, 0.8, 0.8)
-    	t1 <- comp(t1, 1.0, 0.6)
+    	t1 <- comp.v(t1, 0.5, 0.9)
+    	t1 <- comp.v(t1, 0.6, 0.9)
+    	t1 <- comp.v(t1, 0.8, 0.8)
+    	t1 <- comp.v(t1, 1.0, 0.6)
     }
-    t1 <- comp(t1, 0.8, 0.8)
-    t1 <- comp(t1, 1.5, 0.6)
+    t1 <- comp.v(t1, 0.8, 0.8)
+    t1 <- comp.v(t1, 1.5, 0.6)
     t1 <- t1 + x*gain*0.1
     t1 <- t1 - median(t1)
 # plot(t1, type="l"); abline(h=0, col="red")
@@ -110,17 +110,17 @@ chebyhp.s <- function(x, f=220*2, r=15, fs=44100, gain=2, dirty=TRUE) {
         t2[abs(t2) > 0.7] <- t2[abs(t2) > 0.7]*0.95
         t2[abs(t2) > 0.8] <- t2[abs(t2) > 0.8]*min(c((0.95 + (0.05/gain)), 1))
         t2[abs(t2) > 0.9] <- t2[abs(t2) > 0.9]*min(c((0.95 + (0.05/gain)), 1))
-    	t2 <- comp(t2, 1.5, 0.6)
-    	t2 <- comp(t2, 1.7, 0.4)
+    	t2 <- comp.v(t2, 1.5, 0.6)
+    	t2 <- comp.v(t2, 1.7, 0.4)
     } else {
         t2[abs(t2) > 0.5] <- t2[abs(t2) > 0.5]*0.95
-    	t2 <- comp(t2, 0.4, 0.9)
-    	t2 <- comp(t2, 0.6, 0.9)
+    	t2 <- comp.v(t2, 0.4, 0.9)
+    	t2 <- comp.v(t2, 0.6, 0.9)
     }
     t2 <- t2 + t1*gain*0.15
-    t2 <- comp(t2, 0.9, 0.9)
-    t2 <- comp(t2, 1.0, 0.8)
-    t2 <- comp(t2, 1.5, 0.6)
+    t2 <- comp.v(t2, 0.9, 0.9)
+    t2 <- comp.v(t2, 1.0, 0.8)
+    t2 <- comp.v(t2, 1.5, 0.6)
 # plot(t2, type="l"); abline(h=0, col="red")
 # summary(t2)    
     t3 <- signal::filter(ch3, t2)
@@ -130,11 +130,11 @@ chebyhp.s <- function(x, f=220*2, r=15, fs=44100, gain=2, dirty=TRUE) {
         t3[abs(t3) > 0.8] <- t3[abs(t3) > 0.8]*0.9
         t3[abs(t3) > 0.9] <- t3[abs(t3) > 0.9]*0.9
     } else {
-        t3 <- comp(t3, 0.7, 0.9)
-        t3 <- comp(t3, 0.8, 0.8)
+        t3 <- comp.v(t3, 0.7, 0.9)
+        t3 <- comp.v(t3, 0.8, 0.8)
     }
-    t3 <- comp(t3, 0.9, 0.8)
-    t3 <- comp(t3, 1.0, 0.6)
+    t3 <- comp.v(t3, 0.9, 0.8)
+    t3 <- comp.v(t3, 1.0, 0.6)
     t3 <- 0.8*t3 + 0.2*t1
 # plot(t3, type="l"); abline(h=0, col="red")
 # summary(t3)
@@ -164,26 +164,26 @@ ema.v <- function (x, a=2) {
 }
 
 
-ww <- rwav("~/Desktop/mer.wav")
+# ww <- rwav("~/Desktop/mer.wav")
 
-x <- ww
-# set.seed(1)
-# x <- runif(44100*10, -1, 1)
-# x <- c(rep(0, 2), rep(c(1, rep(0, 30)), 50))
-s1 <- seq(pi*1.5, pi*2*10 + pi*1.5, length.out=length(x)) %>>% 
-  sin %>>% 
-  "+"(1) %>>% 
-  "*"(3) %>>% 
-  "+"(0)
-s2 <- seq(pi*1.5, pi*2*10*4 + pi*1.5, length.out=length(x)) %>>% 
-  sin %>>% 
-  "+"(1) %>>% 
-  "*"(5) %>>% 
-  "+"(0)
-s <- (s1+s2+1) %>>% "^"(2) %>>% fitrange(1, 100) %>>% (? summary(.))
-plot(s, type="l")
+# x <- ww
+# # set.seed(1)
+# # x <- runif(44100*10, -1, 1)
+# # x <- c(rep(0, 2), rep(c(1, rep(0, 30)), 50))
+# s1 <- seq(pi*1.5, pi*2*10 + pi*1.5, length.out=length(x)) %>>% 
+  # sin %>>% 
+  # "+"(1) %>>% 
+  # "*"(3) %>>% 
+  # "+"(0)
+# s2 <- seq(pi*1.5, pi*2*10*4 + pi*1.5, length.out=length(x)) %>>% 
+  # sin %>>% 
+  # "+"(1) %>>% 
+  # "*"(5) %>>% 
+  # "+"(0)
+# s <- (s1+s2+1) %>>% "^"(2) %>>% fitrange(1, 100) %>>% (? summary(.))
+# plot(s, type="l")
 
-xe <- ema.v(x, s) %>>% fadein(441) %>>% fadeout(441)
-wwav(xe, "xe.wav", norm=TRUE)
-plot(xe, type="l")
+# xe <- ema.v(x, s) %>>% fadein(441) %>>% fadeout(441)
+# wwav(xe, "xe.wav", norm=TRUE)
+# plot(xe, type="l")
 
